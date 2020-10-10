@@ -1,0 +1,371 @@
+\documentclass[conference]{IEEEtran}
+
+\ifCLASSOPTIONcompsoc
+  \usepackage[nocompress]{cite}
+\else
+  % normal IEEE
+  \usepackage{cite}
+\fi
+
+
+\ifCLASSINFOpdf
+  % \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  % \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{pdfpages}
+\usepackage{adjustbox}
+
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+
+\usepackage{multirow}
+\usepackage{hhline}
+
+\usepackage{etoolbox}
+
+\usepackage{fancyvrb}
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+
+\title{Multiple Instance Learning using EMDD}
+
+\author{\IEEEauthorblockN{Tejas Khairnar}
+\IEEEauthorblockA{Arizona State University\\
+Email: tkhairna@asu.edu}
+\and
+\IEEEauthorblockN{Vivin Paliath}
+\IEEEauthorblockA{Arizona State University\\
+Email: tkhairna@asu.edu}}
+
+\maketitle
+
+\begin{abstract}
+In this paper, we investigate and implement the Expectation Maximization Diverse Density (EM-DD)\cite{zhang2001dd} algorithm, and compare its performance to other, similar algorithms. EM-DD is an approach that has seen significant success in Multiple-Instances Learning problems and is a generalization of the supervised-learning classification-problem. Our goal is to demonstrate an understanding of this algorithm by providing a valid implementation and measuring its performance against various data sets. We will also compare the performance of the EM-DD algorithm against the MatLab MIL-toolkit implementation.
+\end{abstract}
+
+
+\IEEEpeerreviewmaketitle
+
+
+\section{Introduction}
+% no \IEEEPARstart
+The Multiple Instances Learning (MIL) problem\cite{dietterich1997solving} is a variation of the general supervised-learning classification-problem. In the standard version of this problem, labeled, \textit{individual} instances presented one at a time until the classifier is able to learn how to distinguish positive and negative instances. However, in practice, it is not always easy to identify discrete, positive and negative instances; in some cases it may only be known that a set of instances either contains or does not contain a positive instance. MIL aims to solve this variation of the classification problem. In MIL, instead of presenting a single instance, a bag of instances is presented to the algorithm, along with a label that describes the bag as either positive or negative. A bag is given a positive label if it contains at least one positive instance, and a negative label if it does not contain any positive instances. The goal of the MIL problem then, is to classify unseen bags or instances as either positive or negative, based on the training data. For this project, we specifically focus on the EM-DD algorithm and use it to solve the MIL problem. 
+
+
+\section{Implementation}
+
+We successfully implemented the EM-DD algorithm using the Python programming-language and verified its correctness against a simple, clearly-separable synthetic data-set. This synthetic data-set consists of 100 bags with 10 instances each. Positive instances are represented by the vector $[1, 0, 1, 1, 0]^T$ and negative instances are represnted by the vector $[0, 1, 0, 0, 0]$. There were 50 positive bags and 50 negative bags. Positive bags were initialized with a random number of positive instances, with no more than a maximum of 5. Our implementation is able to clearly classify the instances, which demonstrates its correctness. As our implementation is in Python, we used the SciPy library to perform mathematical-operations. To minimize the criterion function, we used \texttt{scipy.optimize.minimize} with the limited-memory variant of BFGS search\cite{byrd1995limited}, using a calculated gradient.  
+
+While implementing the algorithm, the initial issues that we ran into were due to unfamiliarity with SciPy, and were quickly resolved. Later we also noticed that our classification performance was not as good as we expected. Initially, we were using \texttt{scipy.optimize.minimize} with a numerically-estimated gradient. To address performance problems, the documentation suggested the use of an explicitly-defined gradient function. We followed the suggestion and provided such a function, which seemed to not only improve performance, but also significantly decreased training-time. Another reason for the discrepancy was that by default, the EM-DD algorithm as implemented in the MILL toolkit, uses the average of the estimated target and scale vectors from each cross-validation run during prediction. In contrast, our implementation used the target and scale vector corresponding to the best diverse-density. By changing our implementation to instead use the average of the results, we were able to further increase performance.
+
+Since the EM-DD algorithm as described uses 10-fold cross-validation, we employed the same method as well. However the algorithm, as described, does not use the entire training-set during each cross-validation run. Instead, it randomly chooses up to $k$ positive bags from the training set and then uses each instance as a hypothesis. Unfortunately, no information was provided regarding an ideal value of $k$. With some experimentation, we settled on using $k = 10$; using larger values of $k$, only seemed to increase the training-time without any appreciable improvement in accuracy. An issue we noticed here, was that the accuracy performance reported in the original paper is based on the average accuracy of the classifier against when run against each validation set in the 10-fold cross-validation. In contrast, we were reporting our accuracy based only on classification against the \textit{entire} set. By changing our accuracy calculation to be more in line with the original implementation, we started seeing results closer to what we expected, even to the point where it seems that our reported average-accuracy (across 10-fold cross-validation) seemed to be better than the implementation in the MILL toolkit.
+
+Our implementation of the EM-DD algorithm has some differences when compared to the implementation in the MILL toolkit. In the EM portion, the MILL toolkit stops iteration when the difference between the current density and the previous one falls below a certain threshold. On each iteration, it will compare the previous density to the current one, and then set the value of the previous density to the current one in preparation for the next iteration. In contrast, our implementation will only update the value of the previous density if the current density is better. In our implementation, the iteration will terminate if the difference is below a certain threshold, or if there is no change in density. We also calculate precision and recall in addition to accuracy. Furthermore, we also employ 10-fold cross-validation like the original implementation, to calculate our average accuracy; the MILL toolkit implementation does not seem to employ a similar technique.
+\begin{figure}
+\caption{Program output from \texttt{emdd.py}}~\label{fig:emdd-output}
+\begin{Verbatim}[fontsize=\tiny,frame=single]
+Partition 1: 
+    Density: 46.214994685717684 
+    Accuracy: 0.8 
+    Precision: 0.8333333333333334 
+    Recall: 0.8333333333333334
+
+Partition 2: 
+    Density: 44.53627762779977 
+    Accuracy: 1.0 
+    Precision: 1.0 
+    Recall: 1.0
+    
+Partition 3: 
+    Density: 45.81991329148556 
+    Accuracy: 0.8 
+    Precision: 0.5 
+    Recall: 0.5
+
+Partition 4: 
+    Density: 40.59239723412051 
+    Accuracy: 0.9 
+    Precision: 1.0 
+    Recall: 0.8
+    
+Partition 5: 
+    Density: 46.02459327281305
+    Accuracy: 0.7
+    Precision: 0.6
+    Recall: 0.75
+    
+Partition 6: 
+    Density: 45.61426356661195 
+    Accuracy: 0.8 
+    Precision: 1.0 
+    Recall: 0.7142857142857143
+    
+Partition 7: 
+    Density: 41.683017597801886 
+    Accuracy: 0.8 
+    Precision: 0.8 
+    Recall: 0.8
+    
+Partition 8: 
+    Density: 43.78349979801756 
+    Accuracy: 0.9 
+    Precision: 0.8 
+    Recall: 1.0
+    
+Partition 9: 
+    Density: 45.34380248285251 
+    Accuracy: 0.9 
+    Precision: 1.0 
+    Recall: 0.8571428571428571
+    
+Partition 10: 
+    Density: 48.9783103825846 
+    Accuracy: 1.0 
+    Precision: 1 
+    Recall: 0
+    
+Across 10-fold cross-validation:
+Average accuracy: 0.8600000000000001
+Average precision: 0.8533333333333333
+Average recall: 0.7254761904761905
+
+Classifying against test set
+
+Threshold 0.5
+Total bags 92
+Total positive bags 47
+Total negative bags 45
+Total predicted positive bags 64
+Total predicted negative bags 28
+True positives 44
+False positives 20
+True negatives 25
+False negatives 3
+Accuracy 0.75
+Precision 0.6875
+Recall 0.9361702127659575
+\end{Verbatim}
+\end{figure}
+In general, our Python implementation, while correct, does not seem to approach the level of accuracy as described in the original paper, although in some instances it seems to perform better than the MILL implementation. A more thorough explanation of the discrepancy, and a rationale are provided in the results section. A portion of the output from our implementation is also shown in Figure \ref{fig:emdd-output}.
+
+\section{Discussion and Analysis}
+
+In this section, we examine aspects of the EM-DD algorithm, including how and why it works, any possible limitations it may have, and also look at the problem of feature and instance selection. In addition, we will investigate other methods to solve the MIL problem and compare them to EM-DD. While evaluating the performances of these other algorithms against our EM-DD implementation, we only used the MUSK1 data-set as other data-sets were taking an extremely-long time. However, we did use other data-sets to compare our implementation of the EM-DD algorithm against the one provided in the MILL toolkit.
+
+\subsection{EM-DD}
+
+Before looking at the EM-DD algorithm, it is useful to look at the definition of diverse density. If we assume that there is a hypothetical point $t$ in the feature space that identifies the "true concept", the goal of DD is to identify the region that has positive instances from the most number of \textit{different} positive bags, while also being far away from negative instances. Hence the diverse-density problem involves maximizing the probability $P(x = t \mid B_1^+, \dots, B_n^+, B_1^-, \dots, B_m^-)$, where $B_i^+$ is a positive bag and $B_j^-$ is a negative bag. This is effectively equivalent to maximizing the following\cite{maron1998framework}:
+
+\begin{equation}
+\arg\max_x \prod_i P(x = t \mid B_i^+) \prod_i P(x = t \mid B_i^-)
+\end{equation}
+
+From this general definition of the maximum diverse-density, a noisy-or model is used to define the terms in the products. Hence the probability all points did not miss the target is $P(x = t \mid B_i^+) = P(x = t \mid B^+_{i1}, B^+_{i2}, \dots) = 1 - \prod_j(1 - P(x =t \mid B^+_{ij}))$ and likewise $P(x = t \mid B_i^-) = \prod_j(1 - P(x = t \mid B_{ij}^-))$. The probability of a particular instance being the potential target-instance is then based on the distance between them: $P(x = t \mid B_{ij}) = \exp(- \left\| B_{ij} - x \right\|^2)$. The intuition is that if one of the instances in a positive bag is close to $x$, then $P(x = t \mid B_i^+)$ is high. Hence, if all positive bags have an instance close to $x$ and no negative ones do, the diverse density of $x$ will be high. 
+
+It is easy to see why this approach is successful; observe that while the diverse density at the intersection of $n$ bags is exponentially higher than at $n - 1$ bags, the presence of a single negative instance is enough to drive down the diverse density. Hence, the optimal solution is one that includes the maximum number of positive instances and no negative-instances, which is exactly what we want.
+
+The diverse density formulation addresses the problem of feature-selection by taking into account the relevance of features by learning a scaling vector $s$ in addition to the location $x$ that maximizes the diverse density ($\left\| B_{ij} - x \right\|^2 = \sum_k s_k^2(B_{ijk} - x_k)^2$). This allows the algorithm to disregard irrelevant features and consider important ones, especially considering that it uses the Euclidean distance as a metric for "closeness". Therefore, the EM-DD algorithm simultaneously solves the problem of feature-selection and classification. 
+
+In the standard diverse-density forumlation, the authors use gradient ascent with multiple starting-points to identify the target and scaling vector. But in the EM-DD formulation, the positive instance that corresponds to the bag label is viewed as a missing attribute that can be estimated using the expectation-maximization approach\cite{zhang2001dd}. The algorithm starts with an initial guess of the target point $t$ using instances from positive bags. It then repeatedly performs the \textit{E}-step and the \textit{M}-step to search for the maximum-likelihood hypothesis. In the \textit{E}-step, the algorithm needs to select the appropriate instances from the bag. It identifies the most-likely instance from each bag that is responsible for the label of the bag, based on the \textit{current} target $t$. In the \textit{M}-step, the algorithm uses a gradient-ascent search to find the new target $t'$ that maximizes the diverse-density at $h$. After the maximization set, $t$ is set to $t'$ and the algorithm returns to the first step and runs until convergence.
+
+While the EM-DD algorithm performs well, it does have some limitations - it is not able to guarantee a globally-optimal solution and can get stuck in local minima. In addition, the algorithm requires multiple runs with different starting points, due to which the training process can be time-consuming. Another issue with EM-DD is that performance can be affected by the initial guess of the scaling vectors\cite{cholleti2006mi}. The EM-DD algorithm also does not \textit{directly} classify a test-bag as positive or negative; instead it learns a thresold between positive and negative instances\cite{cholleti2006mi}.
+
+The issue relating to selecting a good initial scaling-vector could be solved by using various feature-selection methods, such as Principal Component Analysis (the scaling vector could be initialized based on the eigenvalues for each corresponding-feature), hypothesis testing, or through clustering. While we haven't verified this, perhaps it might be possible to select hypotheses-instances on each cross-validation run by using the target learned from the previous cross-validation run; this could cut down training time by eliminating instances from the selected bags that are not close to the target (i.e., negative instances).
+
+\subsection{Iterated-discrim APR}
+
+The iterated-discrim APR algorithm is an Axis-Parallel-Rectangle algorithm for solving the multiple-instance learning problem\cite{dietterich1997solving}. It starts with a point in the feature-space and then grows a box with the aim of finding the smallest box that covers at least one instance from each postive-bag and no instances from negative bags. It has the same goal as the EM-DD algorithm, but uses a different approach. After identifying this smallest box, it is further expanded using some statistical techniques. The DD and the EM-DD algorithms are improvements over this technique, and avoid some of the potentially-hard computational-problems associated that heuristics in the iterated-discrim algorithm require. This algorithm's performance in comparison to our EM-DD implementation is shown in the results section for the MUSK1 data-set.
+
+\subsection{SVM}
+
+Support Vector Machine\cite{cortes1995support} is a non-parameteric machine-learning algorithm. It works by solving for a decision boundary that maximizes the "margin" between the two classes. This boundary is the midpoint between two "support vectors", which pass through those positive and negative instances that are closest to the midpoint, and equidistant from it. As a result, the algorithm does not need to retain all information about the training data and has a small number of parameters, which are from a subset of the training data itself. We compared this algorithm's performance to our EM-DD implementation against the MUSK1 data set; our findings are shown in the results section.
+
+\subsection{Citation-kNN}
+
+Citation-kNN\cite{wang2000solving} is an approach that adapts the standard kNN algorithm to the multiple-instance learning-problem. While regular kNN classifies a point $p$ in the feature space based on the class of the majority of k nearest-neighbors, citation-kNN takes into account the not only the neighbors of $p$, but also those neighbors that count $p$ as \textit{their} neighbor. Hence the neighbors that \textit{reference} or \textit{cite} that same point could also be taken into account. We used the MUSK1 data-set to compare the performance of this algorithm against our EM-DD implementation. The findings are shown in the results section.
+
+\section{Results}
+
+\begin{table}[t]
+\centering
+\caption{Comparison of accuracy on MUSK1 data-set between EM-DD implementations and other MIL algorithms}
+\label{musk1-comparison}
+\resizebox{\columnwidth}{!}{\begin{tabular}{|l|r|}
+\hline
+\rowcolor[HTML]{333333} 
+{\color[HTML]{FFFFFF} Algorithm} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Accuracy}} \\ \hline
+EM-DD (paper implementation)     & 96.8\%                                                                       \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+EM-DD (our implementation)       & 86\%                                                                         \\ \hline
+EM-DD (MILL implementation)      & 84.9\%                                                                       \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Iterated-discrim APR             & 91.3\%                                                                       \\ \hline
+SVM                              & 80.5\%                                                                       \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Citation-kNN                     & 90.4\%                                                                       \\ \hline
+\end{tabular}}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[t]
+\centering
+\caption{Comparison of accuracy between Python and MILL implementation of EM-DD on multiple data-sets}
+\label{em-dd-comparison}
+\resizebox{\columnwidth}{!}{\begin{tabular}{|l|r|r|}
+\hline
+\rowcolor[HTML]{333333} 
+{\color[HTML]{FFFFFF} Data Set} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Accuracy (Python)}} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Accuracy (MILL)}} \\ \hline
+MUSK1                           & 86\%                                                                                  & 84.9\%                                                                              \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Synthetic data-set 1            & 79\%                                                                                  & 73.25\%                                                                             \\ \hline
+Synthetic data-set 4            & 76\%                                                                                  & 82.4\%                                                                              \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Diabetic-retinopathy data-set   & 83\%                                                                                  & 55.05\%                                                                             \\ \hline
+\end{tabular}}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[t]
+\centering
+\caption{Accuracy, Precision, and Recall for Python EM-DD implementation on all data-sets}
+\label{em-dd-accuracy-precision-recall}
+\resizebox{\columnwidth}{!}{\begin{tabular}{|l|r|r|r|}
+\hline
+\rowcolor[HTML]{333333} 
+{\color[HTML]{FFFFFF} Data Set} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Accuracy}} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Precision}} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Recall}} \\ \hline
+MUSK1                           & 86\% & 85.33\% & 72.54\%                                                                       \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+MUSK2                           & 80.99\% & 89.66\% & 57\%                                                                    \\ \hline
+Synthetic data-set 1            & 79\% & 85.5\% & 70.73\%                                                                        \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Synthetic data-set 4            & 76\% & 80.5\% & 74.75\%                                                                       \\ \hline
+Diabetic-retinopathy data       & 83\% & 86.73\% & 85.9\%                                                                        \\ \hline 
+\rowcolor[HTML]{EFEFEF} 
+Elephant                        & 92\% & 94.4\% & 90.25 \%                                                                         \\ \hline
+Tiger                           & 85\% & 89.33\% & 79.16\%                                                                         \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Fox                             & 78\% & 79.4\% & 73.8\%                                                                         \\ \hline
+\end{tabular}}
+\end{table}
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[t]
+\centering
+\caption{Accuracy, Precision, Recall for Python EM-DD implementation on all data-sets, tested over the entire set}
+\label{em-dd-accuracy-precision-recall-full}
+\resizebox{\columnwidth}{!}{\begin{tabular}{|l|r|r|r|}
+\hline
+\rowcolor[HTML]{333333} 
+{\color[HTML]{FFFFFF} Data Set} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Accuracy}} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Precision}} & \multicolumn{1}{l|}{\cellcolor[HTML]{333333}{\color[HTML]{FFFFFF} Recall}} \\ \hline
+MUSK1                           & 75\% & 68.75\% & 93.61\%                                                                        \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+MUSK2                           & 64.7\% & 52.94\% & 69.23\%                                                                      \\ \hline
+Synthetic data-set 1            & 50\% & 50\% & 100\%                                                                        \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Synthetic data-set 4            & 50\% & 50\% & 100\%                                                                        \\ \hline
+Diabetic-retinopathy data       & 61.3\% & 61.3\% & 100\%                                                                      \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Elephant                        & 59.5\% & 55.25\% & 100\%                                                                      \\ \hline
+Fox                             & 52.5\% & 51.31\%  & 98\%                                                                    \\ \hline
+\rowcolor[HTML]{EFEFEF} 
+Tiger                           & 50.5\% & 50.26\% & 97\%                                                                      \\ \hline
+\end{tabular}}
+\end{table}
+
+
+We compared the performance of our EM-DD implementation against MILL toolkit's implementation for the following data-sets:
+\begin{itemize}
+    \item Synthetic Data\cite{SynthDataset}
+    \item MUSK1\cite{MUSK1Dataset} and MUSK2\cite{MUSK2Dataset}
+    \item Diabetic Retinopathy Data\cite{SynthDataset}
+    \item Elephant, Fox, and Tiger\cite{andrews2002support}
+\end{itemize}
+
+The synthetic data mentioned above is a data-set that was provided to us, and is different from the degenerate, clearly-separable data-set that we used to establish the correctness of our implementation. The provided synthetic data-set is meant to be a "control" data-set that we can use to easily compare our algorithm's performance to the MILL implementation. MUSK1 and MUSK2 data-sets contain features that describe the conformation of a particular kind of molecule, some of which are "musks" (a certain kind of aromatic compound) and others are not. The diabetic-retinopathy data-set contains scans of individuals with and without diabetic retinopathy, which is a complication arising from diabetes, that causes damage to the retina. The Elephant, Fox, and Tiger data-sets each consist of images; each bag contains multiple instances that are sections of a single image. Some of the images in the data-set are images of the corresponding animal, while others are not. 
+
+To compare the performance of our implementation against other MIL algorithms, we only used the MUSK1 data-set. This was due to a lack of time, as some of these algorithms took an especially-long time to run. We also ran into various errors while trying these data-sets against the MILL toolkit implementations of these algorithms. The problems were difficult to solve due to our lack of familiarity with MatLab. Since use of the MUSK1 data-set did not seem to present any such problems, we decided to restrict our comparisons to just that data set; the results can be seen in table \ref{musk1-comparison}.
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+
+To evaluate the performance of our algorithm against the MILL toolkit, we used synthetic data, MUSK1, and diabetic-retinopathy data. We wanted to perform a more complete comparison across all data-sets. Unfortunately, the MILL implementation of the EM-DD algorithm took an exceptionally-long time to run on the MUSK2, Elephant, Fox, and Tiger data-sets without seeming to complete, and in some cases would cause MatLab to freeze. The results of the comparison between our EM-DD implementation and the MILL one can be seen in table \ref{em-dd-comparison}.
+
+While our implementation seemed to outperform the MILL implementation in some instances, it does not approach the accuracy described in the original paper. It is also important to note that the accuracy reported is not absolute - we observed that there seemed to be an upper and lower-bound for the accuracy that seemed to be dependent on the $k$ bags that were chosen before the EM portion of the algorithm. Furthermore, we also shuffle the bags before we divide them into partitions for 10-fold cross-validation, and this could slightly affect the results as well. A possibility for future investigation would be to record accuracy over multiple runs to examine how it varies, and to see if it might be possible to establish an upper and lower bound. Regarding the accuracy with respect to the original implementation, we feel that it might be due to shortcomings in \texttt{scipy.optimize.minimize}. In contrast to MatLab's \texttt{fpmincon}, the SciPy optimizer lacks certain heuristics and optimizations that its MatLab counterpart uses. However, we have been able to verify that our implementation is essentially correct by testing it on a degenerate, clearly-separable set. Hence, one possible-solution to increase accuracy might be to use an external, more-performan solver, or investigate the use of MatLab bindings in SciPy.
+
+To evaluate the overall performance of our algorithm, we ran it against all of the data sets. The average accuracy reported across 10-fold cross-validation can be seen in table \ref{em-dd-accuracy-precision-recall}. We also calculated the average precision and recall of the implementation against all the data-sets, and the results can be seen in same table as well. Interestingly, there seemed to be a large disparity in performance in some cases, when we ran the the classifier against the \textit{entire} data-set. In contrast to the 10-fold averaged cross-validation results, accuracy seemed to be much worse. Note that the target and scale used in the classification in this case is the averaged target and scale from the cross-validation results. For the MUSK1 and MUSK2 data sets, test-data was provided and so we were able to measure our performance against those. For the other data-sets, there was no test-data and so we evaluated the performance of the classifier against the entire test-data set. 
+
+Given our experience with our machine-learning algorithms, we expected the performance to be at least as good as the average result from the 10-fold cross validation, since the classification is against the test set. However, we were surprised to see that this was not necessarily the case. We feel that this might be due to the fact that the classifier learns a threshold between the positive and negative instances, and that this threshold might not generalize appropriately over the entire set. This could be seen when looking at the individual cross-validation results - in some cases accuracy was very low, depending on the bags in the validation set for that particular cross-validation run. There may also be some underfitting happening; to see if this was the case, we repeated the experiments using 3-fold cross-validation, but unfortunately did not see a significant improvement in results; in some cases performance was worse. Another possible source of the underfitting might also be that we never look at every single positive-bag during a particular cross-validation run; we only pick up to $k$ positive bags. One possibility worth investigating, is to set $k$ to the total number of positive bags. However, when initially deciding on the value of $k$, we did notice that increasing $k$ did not produce an appreciable difference in the results. Hence, it might be the case that the problem is that we are approaching the limits of performance of \texttt{scipy.optimize.minimize}. In contrast, the MILL implementation has much better accuracy when performing against the entire data-set. This again, might be due to the fact that \texttt{scipy.optimize.minimize} does not perform as well as MatLab's \texttt{fpmincon}. 
+
+A future avenue of exploration to verify this hypothesis, would be to modify the MILL implementation to calculate the average accuracy across 10-fold cross-validation and compare the results to our implementation; we suspect that the performance will be better than our averaged results. The accuracy, precision, and recall across the complete sets of data are shown in table \ref{em-dd-accuracy-precision-recall-full}. Note that while the recall on some sets is 100\%, this is not necessarily a good result; this can be seen when looking at the precision (50\%) in those cases. What this means is that the classifier classifies every instance as positive, which leads to 100\% recall, but poor precision. Another possibility for future investigation is to examine the role of the classification-threshold a little more in these situations; the MILL implementation uses a threshold of 50\% to classify an instance as positive or negative. If a particular instance's probability of "closeness" as based on the density is higher than this threshold, it is classified as positive. It may be that in some cases, the threshold of classification for positive instances is much higher than 50\% and so using this higher value might provide better results.
+
+
+\section{Conclusion}
+
+We were able to successfully implement the EM-DD algorithm and compare its performance against the MILL toolkit implementation. In addition, we were also able to compare the performance of our EM-DD implementation against other algorithms that aim to solve the MIL problem, as well as the EM-DD implementation in the MIL toolkit. We note that our average accuracy across 10-fold cross validation is better than the MIL implementation. However, the MIL implementation performs better across the entire data-set compared to ours. To address these discrepencies and to understand the reason behind them, we feel that it would be useful to perform additional experiments, use a better minimizer, and also examine the role of the threshold used in classifying instances. While our implementation's performance does not match the results in the original paper, we note that this might also be due to limitations in the optimization method used by \texttt{scipy.optimize.minimize}, which does not perform as well as MatLab's \texttt{fmincon}. Furthermore, we were able to verify that our implementation is essentially correct by testing it against a degenerate, easily-separable, synthetic data-set. Through our implementations, experiments, and comparisons, we feel that we have also been able to demonstrate sufficient understanding and appreciation of this particular machine-learning approach. 
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+\bibliography{IEEEabrv,main}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+%\begin{thebibliography}{1}
+
+%\bibitem{IEEEhowto:kopka}
+%H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+%  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+
+%\end{thebibliography}
+
+
+% that's all folks
+\end{document}

@@ -1,0 +1,52 @@
+Cross-validation on partition 1 with 20 instances
+.........10.........20
+Partition 0: Density: 69.15365439882137 Accuracy: 0.7 Precision: 1.0 Recall: 0.5714285714285714
+Cross-validation on partition 2 with 20 instances
+.........10.........20
+Partition 1: Density: 61.68656718997195 Accuracy: 0.8 Precision: 0.8 Recall: 0.8
+Cross-validation on partition 3 with 20 instances
+.........10.........20
+Partition 2: Density: 63.31018477566571 Accuracy: 0.8 Precision: 0.75 Recall: 0.75
+Cross-validation on partition 4 with 20 instances
+.........10.........20
+Partition 3: Density: 61.20688926614736 Accuracy: 0.9 Precision: 1.0 Recall: 0.5
+Cross-validation on partition 5 with 20 instances
+.........10.........20
+Partition 4: Density: 57.33023836091993 Accuracy: 0.8 Precision: 1.0 Recall: 0.6666666666666666
+Cross-validation on partition 6 with 20 instances
+.........10.........20
+Partition 5: Density: 59.151180304742006 Accuracy: 0.8 Precision: 0.6666666666666666 Recall: 1.0
+Cross-validation on partition 7 with 20 instances
+.........10.........20
+Partition 6: Density: 65.95588983684976 Accuracy: 0.9 Precision: 0.6666666666666666 Recall: 1.0
+Cross-validation on partition 8 with 20 instances
+.........10.........20
+Partition 7: Density: 60.76712357995019 Accuracy: 0.8 Precision: 1.0 Recall: 0.7142857142857143
+Cross-validation on partition 9 with 20 instances
+.........10.........20
+Partition 8: Density: 60.73662268284843 Accuracy: 0.7 Precision: 0.6666666666666666 Recall: 0.5
+Cross-validation on partition 10 with 20 instances
+.........10.........20
+Partition 9: Density: 61.27587317410778 Accuracy: 0.7 Precision: 1.0 Recall: 0.5714285714285714
+Across 10-fold cross-validation:
+Average accuracy: 0.79
+Average precision: 0.8550000000000001
+Average recall: 0.7073809523809523
+Using result EMDDResult(target=array([ 0.20872774,  0.27677866,  0.60779834,  0.16228386,  0.34899962,
+        0.74621907,  0.61742026,  0.43750835,  0.50205719,  0.16506088]), scale=array([ 1.94513765,  1.38709756,  1.5027936 ,  1.87840815,  2.21724922,
+        1.25370179,  1.43356775,  0.51733876,  1.89180453,  1.32733643]), density=62.05742235700245) for prediction
+Classifying against test set
+
+Threshold 0.5
+Total bags 1000
+Total positive bags 500
+Total negative bags 500
+Total predicted positive bags 1000
+Total predicted negative bags 0
+True positives 500
+False positives 500
+True negatives 0
+False negatives 0
+Accuracy 0.5
+Precision 0.5
+Recall 1.0
