@@ -1,0 +1,202 @@
+#!/usr/bin/python
+# coding=utf-8
+from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
+from sklearn import tree
+# import xgboost as xgb
+import numpy as np
+from system.Tri_training01.bootstrapSample import Sample
+from system.Setting.config import Config
+from system.Tri_training01.process import Process
+from system.Tri_training01.Bagging import Bagging
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn import neighbors
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model.logistic import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, KFold, train_test_split
+from sklearn.metrics import make_scorer, accuracy_score
+from sklearn.ensemble import VotingClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+from sklearn import mixture
+from xgboost.sklearn import XGBClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import StandardScaler
+
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+
+class Learn:
+
+    def __init__(self):
+        pass
+
+    def test1(self,S):
+        train = S
+        y = train['type']
+        x = train.drop(['type'], 1)
+        x_train = x.values
+        y_train = y.values.ravel()
+
+        # 三个基学习器
+        dt_clf = tree.DecisionTreeClassifier(class_weight ='balanced')
+        rf_clf = RandomForestClassifier(class_weight ='balanced')
+        svm_clf = SVC(probability=True,class_weight ='balanced')
+        log_clf = LogisticRegression(class_weight ='balanced')
+        nbrs_clf = neighbors.KNeighborsClassifier()
+        nb_clf = GaussianNB()
+        GMM_clf = mixture.GMM(n_components=2)
+        li_clf = LinearRegression()
+
+        clf = AdaBoostClassifier(
+            VotingClassifier(estimators=[("dt_clf", dt_clf), ("rf_clf", rf_clf), ("log_clf", log_clf)], voting="soft"),
+            algorithm="SAMME",
+        )
+
+        clf.fit(x_train, y_train)
+        return clf
+
+    def test2(self,S):
+        train = S
+        y = train['type']
+        x = train.drop(['type'], 1)
+        x_train = x.values
+        y_train = y.values.ravel()
+
+        # 三个基学习器
+        dt_clf = tree.DecisionTreeClassifier(class_weight ='balanced')
+        rf_clf = RandomForestClassifier(class_weight ='balanced')
+        svm_clf = SVC(probability=True,class_weight ='balanced')
+        log_clf = LogisticRegression()
+        nbrs_clf = neighbors.KNeighborsClassifier()
+        nb_clf = GaussianNB()
+        GMM_clf = mixture.GMM(n_components=2)
+        xgb_clf = XGBClassifier()
+        GBC_clf = GradientBoostingClassifier()
+        # 投票分类器
+        # voting_clf = VotingClassifier(estimators=[("rf", dt_clf), ("svc", rf_clf), ("nc", svm_clf)], voting="soft")
+        clf = AdaBoostClassifier(
+            VotingClassifier(estimators=[("rf", GBC_clf), ("svc", rf_clf), ("nc", svm_clf)], voting="soft"),
+            algorithm="SAMME")
+
+        clf.fit(x_train, y_train)
+        return clf
+
+
+    def test3(self,S):
+        train = S
+        y = train['type']
+        x = train.drop(['type'], 1)
+        x_train = x.values
+        y_train = y.values.ravel()
+        # 三个基学习器
+        dt_clf = tree.DecisionTreeClassifier()
+        rf_clf = RandomForestClassifier()
+        svm_clf = SVC(probability=True)
+        log_clf = LogisticRegression(class_weight ='balanced')
+        nbrs_clf = neighbors.KNeighborsClassifier()
+        nb_clf = GaussianNB()
+        GMM_clf = mixture.GMM(n_components=2)
+        xgb_clf = XGBClassifier(class_weight ='balanced')
+        li_clf = LinearRegression()
+        MLP_clt = MLPClassifier(max_iter=1000, alpha=1, random_state=0,hidden_layer_sizes=[8,8])
+        GBC_clf = GradientBoostingClassifier(random_state=0, learning_rate=1)
+        clf =AdaBoostClassifier( VotingClassifier(
+                estimators=[("xgb_clf", xgb_clf), ("svc", log_clf), ("dt_clf", nb_clf)], voting="soft"),
+            algorithm="SAMME")
+        clf.fit(x_train, y_train)
+        return clf
+
+
+    def test4(self):
+
+        # 三个基学习器
+        dt_clf = tree.DecisionTreeClassifier()
+        rf_clf = RandomForestClassifier()
+        svm_clf = SVC(probability=True)
+        log_clf = LogisticRegression(class_weight ='balanced')
+        nbrs_clf = neighbors.KNeighborsClassifier()
+        nb_clf = GaussianNB()
+        GMM_clf = mixture.GMM(n_components=2)
+        xgb_clf = XGBClassifier(class_weight ='balanced')
+        li_clf = LinearRegression()
+        MLP_clt = MLPClassifier(max_iter=1000, alpha=1, random_state=0,hidden_layer_sizes=[8,8])
+        GBC_clf = GradientBoostingClassifier(random_state=0, learning_rate=1)
+        clf =AdaBoostClassifier( VotingClassifier(
+                estimators=[("xgb_clf", xgb_clf), ("svc", log_clf), ("dt_clf", nb_clf)], voting="soft"),
+            algorithm="SAMME")
+
+        return svm_clf
+
+
+    def test5(self):
+
+        # 三个基学习器
+        dt_clf = tree.DecisionTreeClassifier()
+        rf_clf = RandomForestClassifier()
+        svm_clf = SVC(probability=True)
+        log_clf = LogisticRegression(class_weight ='balanced')
+        nbrs_clf = neighbors.KNeighborsClassifier()
+        nb_clf = GaussianNB()
+        GMM_clf = mixture.GMM(n_components=2)
+        xgb_clf = XGBClassifier(class_weight ='balanced')
+        li_clf = LinearRegression()
+        MLP_clt = MLPClassifier(max_iter=1000, alpha=1, random_state=0,hidden_layer_sizes=[8,8])
+        GBC_clf = GradientBoostingClassifier(random_state=0, learning_rate=1)
+        clf =AdaBoostClassifier( VotingClassifier(
+                estimators=[("xgb_clf", xgb_clf), ("svc", log_clf), ("dt_clf", nb_clf)], voting="soft"),
+            algorithm="SAMME")
+
+        return GBC_clf
+
+
+
+    """ 准确率评估 """
+
+    def Estimate(self, T, M):
+        y = T['type']
+        x = T.drop(['type'], 1)
+        x_test = x.values
+        y_test = y.values
+        score = M.score(x_test, y_test)
+        return score
+
+    """ 返回模型 """
+
+    def genModel(self, i):
+        switch = {
+            0: self.test1(),
+            1: self.test2(),
+            2: self.test3(),
+        }
+        return switch.get(i)
+
+
+if __name__ == '__main__':
+    pro = Process()
+    pro.read_labeled()
+    L = pro.L
+    T = pro.T
+    learn = Learn()
+    M = []
+    for i in range(3):
+        M.append(learn.genModel(i, L))
+    bagging = Bagging(M)
+    print T
+    y_pre = bagging.predict(T)
+    print(y_pre)
+
+
+
+
+
+
+
