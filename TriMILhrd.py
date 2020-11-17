@@ -302,7 +302,7 @@ class EMDD:
             validation_set = validation_and_training_set["validation_set"]
             training_set = validation_and_training_set["training_set"]
             positive_training_bags = [bag for bag in training_set if bag.is_positive()]
-            random.shuffle(positive_training_bags)    # 将序列打乱
+            random.shuffle(positive_training_bags)    
             k = 10
             random_positive_bags = list(map(lambda x: positive_training_bags[x], range(0, k)))
             total_instances = sum([len(bag.instances) for bag in random_positive_bags])
@@ -363,7 +363,7 @@ class EMDD:
             for bag in bags:
                 probabilities = EMDD.positive_instance_probability(target, scale, bag.instances)
                 # print("run", run, "positive", bag.is_positive(), "bag", bag.index, "instance", numpy.argmax(probabilities), "probability", probabilities[numpy.argmax(probabilities)])
-                optimal_instances.append(bag.instances[numpy.argmax(probabilities)])  #argmax返回的是最大数的索引
+                optimal_instances.append(bag.instances[numpy.argmax(probabilities)])  
             if perform_scaling:
                 params = numpy.concatenate((target, scale))
                 lower_bound = numpy.zeros(2 * target.size)
@@ -722,50 +722,50 @@ def roc_computer(prediction):
     # Compute ROC curve and ROC area for each class
     y_test = prediction[0]
     y_score = prediction[1]
-    fpr, tpr, threshold = roc_curve(y_test,y_score)  ###计算真正率和假正率
+    fpr, tpr, threshold = roc_curve(y_test,y_score)  
     return fpr, tpr, threshold
 
 def roc(prediction_result,prediction_result_n):
     # Compute ROC curve and ROC area for each class
     fpr04, tpr04, threshold04 = roc_computer(prediction_result)
-    roc_auc04 = auc(fpr04, tpr04)  ###计算auc的值
+    roc_auc04 = auc(fpr04, tpr04)  
     fpr03, tpr03, threshold03 = roc_computer(prediction_result_n)
-    roc_auc03 = auc(fpr03, tpr03)  ###计算auc的值
+    roc_auc03 = auc(fpr03, tpr03)  
     # fpr02, tpr02, threshold02 = roc_computer(tri02_clt,reader02)
-    # roc_auc02 = auc(fpr02, tpr02)  ###计算auc的值
+    # roc_auc02 = auc(fpr02, tpr02)  
     # fpr01, tpr01, threshold01 = roc_computer(tri01_clt, reader01)
-    # roc_auc01 = auc(fpr01, tpr01)  ###计算auc的值
+    # roc_auc01 = auc(fpr01, tpr01) 
     lw = 2
     # plt.figure(figsize=(10, 10))
-    # 设置输出的图片大小
+    
     figsize = 10, 10
     figure, ax = plt.subplots(figsize=figsize)
     # plt.figure(figsize=(10, 10))
-    # 设置坐标刻度值的大小以及刻度值的字体
+    
     plt.tick_params(labelsize=23)
     labels = ax.get_xticklabels() + ax.get_yticklabels()
     [label.set_fontname('Times New Roman') for label in labels]
-    # 设置图例并且设置图例的字体及大小
+    
     font1 = {'family': 'Times New Roman',
              'weight': 'normal',
              'size': 23,
              }
-    # 设置横纵坐标的名称以及对应字体格式
+   
     font2 = {'family': 'Times New Roman',
              'weight': 'normal',
              'size': 30,
              }
     plt.plot(fpr04, tpr04, color='fuchsia',
-             lw=lw, label='NA12878(area = %0.2f)' % roc_auc04)  ###假正率为横坐标，真正率为纵坐标做曲线
+             lw=lw, label='NA12878(area = %0.2f)' % roc_auc04)  
     #
     plt.plot(fpr03, tpr03, color='blue',
-             lw=lw, label='ILM_INDEL_Test_stander(area = %0.2f)' % roc_auc03)  ###假正率为横坐标，真正率为纵坐标做曲线
+             lw=lw, label='ILM_INDEL_Test_stander(area = %0.2f)' % roc_auc03)  
 
     # plt.plot(fpr02, tpr02, color='darkorange',
-    #          lw=lw, label='NA12878-GATK3-chr21_2000(area = %0.2f)' % roc_auc02)  ###假正率为横坐标，真正率为纵坐标做曲线
+    #          lw=lw, label='NA12878-GATK3-chr21_2000(area = %0.2f)' % roc_auc02)  
     #
     # plt.plot(fpr01, tpr01, color='lime',
-    #          lw=lw, label='NA12877(area = %0.2f)' % roc_auc01)  ###假正率为横坐标，真正率为纵坐标做曲线
+    #          lw=lw, label='NA12877(area = %0.2f)' % roc_auc01)  
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -800,7 +800,7 @@ if __name__ == "__main__":
         prediction_result = EMDD.predict(results=training_results, bags=test_bags, aggregate=Aggregate.avg)
         prediction_result_n = EMDD.predict_n(results_n=training_results_n,bags=test_bags)
         if prediction_result_n.accuracy >0.84 and prediction_result_n.precision > 0.84 and prediction_result_n.recall > 0.84:
-            pickle.dump([training_results, training_results_n], open('trained_EMDDN' + str(s) + '.pkl', 'wb'))  # 保存模型
+            pickle.dump([training_results, training_results_n], open('trained_EMDDN' + str(s) + '.pkl', 'wb'))  
             fw = open('result'+str(s)+'.csv', 'w')
             buffList = [str(prediction_result.true_positives),str(prediction_result_n.true_positives),str(prediction_result.false_positives),str(prediction_result_n.false_positives),str(prediction_result.true_negatives),str(prediction_result_n.true_negatives),str(prediction_result.false_negatives),str(prediction_result_n.false_negatives),str(prediction_result.accuracy),str(prediction_result_n.accuracy),str(prediction_result.precision),str(prediction_result_n.precision),str(prediction_result.recall),str(prediction_result_n.recall)]
             newBuff = ','.join(buffList)+'\n'
