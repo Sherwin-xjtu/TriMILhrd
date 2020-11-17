@@ -822,17 +822,17 @@ if __name__ == "__main__":
         y_pred = prediction_result[1]
         target = [' falsely variable', 'truly  variable']
         report1 = classification_report(y_true, y_pred, target_names=target)
-        print("单个目标点性能报告：\n {0}".format(report1))
+        print("One target point：\n {0}".format(report1))
         y_true_2 = prediction_result_2 [0]
         y_pred_2  = prediction_result_2 [1]
         report2 = classification_report(y_true_2, y_pred_2, target_names=target)
-        print("2个目标点性能报告：\n {0}".format(report2))
+        print("Two target points：\n {0}".format(report2))
         y_true_3 = prediction_result_3[0]
         y_pred_3 = prediction_result_3[1]
         report3 = classification_report(y_true_3, y_pred_3, target_names=target)
-        print("3个目标点性能报告：\n {0}".format(report3))
+        print("Three target points：\n {0}".format(report3))
         y_true_4 = prediction_result_4[0]
         y_pred_4 = prediction_result_4[1]
         report4 = classification_report(y_true_4, y_pred_4, target_names=target)
-        print("4个目标点性能报告：\n {0}".format(report4))
+        print("Four target points：\n {0}".format(report4))
         # roc(prediction_result, prediction_result_n)
